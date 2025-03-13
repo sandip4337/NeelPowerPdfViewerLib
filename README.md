@@ -45,28 +45,27 @@ Step 2:  Add the dependency
 
  # How to use 
 
- class MainActivity : AppCompatActivity() {
+	 class MainActivity : AppCompatActivity() {
+	
+	    private lateinit var pdfButton: Button
+	
+	    override fun onCreate(savedInstanceState: Bundle?) {
+	        super.onCreate(savedInstanceState)
+	        enableEdgeToEdge()
+	        setContentView(R.layout.activity_main)
+	
+	        pdfButton = findViewById(R.id.openPdfButton)
+	
+	        pdfButton.setOnClickListener {
+	            val pdfUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+	            val pdfName = "dummy"
+	            PdfViewerActivity.openPdfViewer(this, pdfUrl, pdfName, "123dummy")
+	        }
+	    }
+	}
 
-    private lateinit var pdfButton: Button
+ # Here is the video of NeelPowerPdfLibrary
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
+ https://github.com/user-attachments/assets/a0f88576-c279-4629-92b4-6ffd04a6adc3
 
-        pdfButton = findViewById(R.id.openPdfButton)
 
-        pdfButton.setOnClickListener {
-
-            // arrange the information about the pdf
-            val pdfUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-            val pdfName = "dummy"
-	    val pdfId = "123dummy"
-
-            // open the pdf on a new activity in a webview
-            PdfViewerActivity.openPdfViewer(this, pdfUrl, pdfName, pdfId)
-        }
-    }
-}
-
- 
