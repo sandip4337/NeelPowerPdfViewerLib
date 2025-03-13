@@ -31,6 +31,9 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    group = "com.github.sandip4337" // Use your GitHub username
+    version = "1.0.1"
 }
 
 dependencies {
