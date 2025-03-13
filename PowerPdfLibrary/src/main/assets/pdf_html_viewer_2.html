@@ -1,0 +1,147 @@
+`);
+
+
+            let pdf_doc = null,
+                page_num = 1,
+                page_rendering = false,
+                page_num_pending = null,
+                scale = 4,
+                initial_rendering = true,
+                canvas = document.getElementById('pdf_preview'),
+                ctx = canvas.getContext('2d');
+            let input_pagenum = document.getElementById('input_pagenum');
+
+            let loading_task = pdfjsLib.getDocument({data: pdf_data});
+            loading_task.promise.then(function(pdf){
+                pdf_doc = pdf;
+                document.getElementById('page_count').textContent = pdf_doc.numPages;
+                renderPage(page_num);
+                document.getElementById('main_container').style.display = 'block';
+            });
+
+
+
+            function renderPage(num) {
+                /**
+                 * Get page info from document, resize canvas accordingly, and render page.
+                 * @param num Page number.
+                 */
+                page_rendering = true;
+                // Using promise to fetch the page
+                pdf_doc.getPage(num).then(function (page) {
+                    let viewport = page.getViewport({ scale: scale });
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    // Render PDF page into canvas context
+                    let renderContext = {
+                        canvasContext: ctx,
+                        viewport: viewport
+                    };
+                    let renderTask = page.render(renderContext);
+
+                    // Wait for rendering to finish
+                    renderTask.promise.then(function () {
+                        page_rendering = false;
+                        if (page_num_pending !== null) {
+                            // New page rendering is pending
+                            let pendingPage = page_num_pending;
+                            page_num_pending = null;
+                            renderPage(pendingPage);
+                        }
+                    });
+
+                    if(initial_rendering){
+                        client_width = document.getElementById('canvas_container').clientWidth
+                        canvas_width = document.getElementById('pdf_preview').width
+                        document.getElementById('pdf_preview').style.zoom = client_width / canvas_width
+                        initial_rendering = false
+                    }
+
+                });
+
+                // Update page counters
+                input_pagenum.placeholder = num;
+            }
+
+            function queueRenderPage(num) {
+                /**
+                 * If another page rendering in progress, waits until the rendering is
+                 * finised. Otherwise, executes rendering immediately.
+                 */
+                if (page_rendering) {
+                    page_num_pending = num;
+                } else {
+                    renderPage(num);
+                }
+            }
+
+            function onPrevPage() {
+                /**
+                 * Displays previous page.
+                 */
+                if (page_num <= 1) {
+                    return;
+                }
+                page_num--;
+                queueRenderPage(page_num);
+            }
+
+            function onNextPage() {
+                /**
+                 * Displays next page.
+                 */
+                if (page_num >= pdf_doc.numPages) {
+                    return;
+                }
+                page_num++;
+                queueRenderPage(page_num);
+            }
+
+            function zoomIn() {
+                scale += 0.25;
+                queueRenderPage(page_num);
+            }
+
+            function zoomOut() {
+                if (scale <= 1) {
+                    return;
+                }
+                scale -= 0.25;
+                queueRenderPage(page_num);
+            }
+
+            function goToPage() {
+                // renders page number entered in searchbar
+
+                let pgnum = parseInt(input_pagenum.value);
+                if (Number.isNaN(pgnum)){
+                    return;
+                }
+                else if (pgnum < 1){
+                    pgnum = 1;
+                }
+                else if (pgnum > pdf_doc.numPages){
+                    pgnum = pdf_doc.numPages;
+                }
+                page_num = pgnum;
+                queueRenderPage(pgnum);
+                input_pagenum.value = '';
+            }
+            input_pagenum.addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    goToPage();
+                }
+            });
+            input_pagenum.addEventListener('click',function(event) {
+                input_pagenum.placeholder = '';
+            });
+            input_pagenum.addEventListener('blur',function(event) {
+                if (!(input_pagenum.value).length){
+                    input_pagenum.placeholder = page_num;
+                }
+            });
+        </script>
+    </body>
+</html>
