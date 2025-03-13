@@ -61,9 +61,10 @@ Step 2:  Add the dependency
             // arrange the information about the pdf
             val pdfUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
             val pdfName = "dummy"
+	    val pdfId = "123dummy"
 
             // open the pdf on a new activity in a webview
-            PdfViewerActivity.openPdfViewer(this, pdfUrl, pdfName, "123dummy")
+            PdfViewerActivity.openPdfViewer(this, pdfUrl, pdfName, pdfId)
         }
     }
 }
