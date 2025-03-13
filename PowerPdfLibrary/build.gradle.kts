@@ -32,9 +32,34 @@ android {
         jvmTarget = "11"
     }
 
-    group = "com.github.sandip4337" // Use your GitHub username
-    version = "1.0.1"
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
 }
+
+group = "com.github.sandip4337" // Your GitHub username or organization name
+
+version = (if (project.hasProperty("isReleaseBuild") && project.property("isReleaseBuild") == "true") {
+    project.property("versionName")
+} else {
+    "${project.property("versionName")}-SNAPSHOT"
+})!!
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"]) // Use the 'release' component (e.g., AAR)
+                groupId = project.group.toString() // Use the project-level group ID
+                artifactId = "NeelPowerPdfViewerLib" // The name of your library
+                version = project.version.toString() // Use the dynamically set version
+            }
+        }
+    }
+}
+
 
 dependencies {
     implementation(libs.androidx.core.ktx)
