@@ -6,9 +6,17 @@ This is just a simple pdf library you can display a pdf of any size (small/mediu
 
 Application size will be increase with 3-4 mb
 
+# 🔥 Features
+
+  1. Easy PDF Downloading
+
+  2. Base64 Conversion
+
+  3. WebView Display Support
+
 # step by step guide to add the library
 
-Step 1: Add it in your settings.gradle.kts at the end of repositories:
+Step 1: Add it in your ***settings.gradle.kts*** at the end of repositories:
 
 	dependencyResolutionManagement {
 		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -17,6 +25,17 @@ Step 1: Add it in your settings.gradle.kts at the end of repositories:
 			maven { url = uri("https://jitpack.io") }
 		}
 	}
+
+ if you use ***gradle*** then Add it in your root ***settings.gradle*** at the end of repositories:
+
+	dependencyResolutionManagement {
+		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+		repositories {
+			mavenCentral()
+			maven { url 'https://jitpack.io' }
+		}
+	}
+
  
 Step 2:  Add the dependency
 
@@ -48,13 +67,5 @@ Step 2:  Add the dependency
         }
     }
 }
-
-# 🔥 Features
-
-  1. Easy PDF Downloading
-
-  2. Base64 Conversion
-
-  3. WebView Display Support
 
  
