@@ -38,28 +38,47 @@ Step 2:  Add the dependency
  # 🔥 Features
 
 1. PDF Download & Processing
-The PdfDownloader class is responsible for:
-✅ Downloading PDFs using Retrofit with efficient background execution via Coroutines.
-✅ Displaying real-time download progress through a callback function.
-✅ Checking for existing processed files before re-downloading to improve efficiency.
-✅ Encoding the downloaded PDF to Base64 to enable embedding in an HTML file.
-✅ Generating an HTML file that loads the Base64-encoded PDF using JavaScript-based rendering.
-✅ Automatic cleanup – Once processed, the original PDF and temporary files are deleted.
+   
+	The PdfDownloader class is responsible for:
+	
+	✅ Downloading PDFs using Retrofit with efficient background execution via Coroutines.
+	
+	✅ Displaying real-time download progress through a callback function.
+	
+	✅ Checking for existing processed files before re-downloading to improve efficiency.
+	
+	✅ Encoding the downloaded PDF to Base64 to enable embedding in an HTML file.
+	
+	✅ Generating an HTML file that loads the Base64-encoded PDF using JavaScript-based rendering.
+	
+	✅ Automatic cleanup – Once processed, the original PDF and temporary files are deleted.
 
 2. PDF Viewing in WebView
-The PdfViewerActivity ensures a seamless user experience by:
-✅ Loading the HTML file into a WebView to display the PDF.
-✅ Ensuring safe file access with restricted external visibility.
-✅ Providing smooth navigation and error handling within the WebView.
-✅ Showing a progress dialog while the file is being downloaded and processed.
-✅ Allowing users to open the viewer with a single function call.
+   
+	The PdfViewerActivity ensures a seamless user experience by:
+	
+	✅ Loading the HTML file into a WebView to display the PDF.
+	
+	✅ Ensuring safe file access with restricted external visibility.
+	
+	✅ Providing smooth navigation and error handling within the WebView.
+	
+	✅ Showing a progress dialog while the file is being downloaded and processed.
+	
+	✅ Allowing users to open the viewer with a single function call.
 
 #  Why is This Implementation Beneficial?
+
 🚀 Fast & Efficient – Uses Coroutines for background tasks, reducing UI thread workload.
+
 🔄 Offline Access – Once processed, PDFs can be viewed anytime without re-downloading.
+
 🔐 Secure – Prevents unauthorized access by restricting file permissions.
+
 📜 Lightweight Alternative to PDF Viewers – No need for third-party PDF libraries.
+
 📡 Handles Large PDFs Effectively – Base64 conversion prevents memory overflow.
+
 📊 Download Progress Updates – Users can track file download progress.
 
  # How to use : only open the pdf 
