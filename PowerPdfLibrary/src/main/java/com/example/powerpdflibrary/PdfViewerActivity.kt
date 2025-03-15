@@ -13,9 +13,7 @@ import android.webkit.WebViewClient
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import okhttp3.ResponseBody
 import java.io.File
 import java.io.FileOutputStream
@@ -29,6 +27,7 @@ class PdfViewerActivity : AppCompatActivity() {
     private var pdfUrl: String? = null
     private var pdfName: String? = null
     private var pdfId: String? = null
+    private var isDownload: Boolean? = false
     private var progressDialog: PdfProgressDialog? = null
     private lateinit var filesDirPath: String
     private val apiService = RetrofitClient.apiService
@@ -43,23 +42,105 @@ class PdfViewerActivity : AppCompatActivity() {
         pdfName = intent.getStringExtra("PDF_NAME") ?: ""
         pdfUrl = intent.getStringExtra("PDF_URL") ?: ""
         pdfId = intent.getStringExtra("PDF_ID") ?: ""
+        isDownload = intent.getBooleanExtra("isDownload", false)
+
 
         if (pdfUrl?.isNotEmpty() == true && pdfName?.isNotEmpty() == true && pdfId?.isNotEmpty() == true) {
             filesDirPath = filesDir.absolutePath
             val htmlFilePath = "$filesDirPath/$pdfName$pdfId.html"
 
-            if (File(htmlFilePath).exists()) {
-                showProgressDialog(true)
-                pdfOpenInWebView(htmlFilePath)
-            } else {
-                lifecycleScope.launch {
-                    showProgressDialog(true)
-                    downloadPdf(pdfUrl ?: "", pdfName ?: "", pdfId ?: "")
+            showProgressDialog(true)
+            lifecycleScope.launch {
+                if (File(htmlFilePath).exists()) {
+                    pdfOpenInWebView(htmlFilePath)
+                } else {
+                    downloadAndProcessPdf(pdfUrl!!, pdfName!!, pdfId!!)
                 }
             }
         } else {
             fileNotPdf.text = "Sorry!!! Pdf information is missing"
             fileNotPdf.visibility = View.VISIBLE
+        }
+    }
+
+    private suspend fun downloadAndProcessPdf(url: String, pdfName: String, pdfId: String) {
+        try {
+            val responseBody = withContext(Dispatchers.IO) { apiService.downloadPdf(url) }
+            val contentType = responseBody.contentType()?.toString()
+            Log.d("Download", "Content-Type: $contentType")
+
+            if (contentType == null || !contentType.contains("pdf", ignoreCase = true)) {
+                Log.e("Download", "Error: This is NOT a PDF file!")
+                hideProgressDialog()
+                withContext(Dispatchers.Main) { fileNotPdf.visibility = View.VISIBLE }
+                return
+            }
+
+            val pdfFile = File(filesDir, "$pdfName.pdf").apply {
+                setReadable(false, false) // Prevents external access
+                setWritable(false, false)
+            }
+            val base64File = File(filesDir, "base64.txt")
+            val htmlFile = File(filesDir, "$pdfName$pdfId.html")
+
+            coroutineScope {
+                val savePdfDeferred = async { writeResponseBodyToDisk(pdfFile, responseBody) }
+                val savePdfSuccess = savePdfDeferred.await()
+                if (!savePdfSuccess) {
+                    Log.e("Download", "Failed to download file")
+                    return@coroutineScope
+                }
+                Log.d("Download", "File downloaded successfully: ${pdfFile.length()} bytes")
+
+                val encodeBase64Deferred = async { encodeFileToBase64(pdfFile) }
+                val base64String = encodeBase64Deferred.await()
+                base64File.writeText(base64String)
+
+                val htmlPart1 = async { assets.open("pdf_html_viewer_1.html").bufferedReader().use { it.readText() } }
+                val htmlPart2 = async { assets.open("pdf_html_viewer_2.html").bufferedReader().use { it.readText() } }
+
+                htmlFile.writeText(htmlPart1.await() + base64File.readText() + htmlPart2.await())
+
+                base64File.delete()
+                pdfFile.delete()
+            }
+            if (isDownload == false) {
+                withContext(Dispatchers.Main) { pdfOpenInWebView(htmlFile.absolutePath) }
+            }
+        } catch (e: IOException) {
+            Log.e("DownloadError", "Error downloading PDF: ${e.message}", e)
+        }
+    }
+
+    private suspend fun writeResponseBodyToDisk(file: File, body: ResponseBody): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                body.byteStream().use { inputStream ->
+                    FileOutputStream(file).use { outputStream ->
+                        val buffer = ByteArray(16 * 1024)
+                        var bytesRead: Int
+                        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                            outputStream.write(buffer, 0, bytesRead)
+                        }
+                        outputStream.flush()
+                    }
+                }
+                true
+            } catch (e: IOException) {
+                e.printStackTrace()
+                false
+            }
+        }
+    }
+
+    private suspend fun encodeFileToBase64(file: File): String {
+        return withContext(Dispatchers.IO) {
+            val bytes = file.readBytes()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Base64.getEncoder().encodeToString(bytes)
+            } else {
+                android.util.Base64.encodeToString(bytes, android.util.Base64.DEFAULT)
+            }
         }
     }
 
@@ -78,85 +159,6 @@ class PdfViewerActivity : AppCompatActivity() {
             }
         }
         webView.loadUrl("file:///$filePath")
-    }
-
-    private suspend fun downloadPdf(url: String, pdfName: String, pdfId: String) {
-        withContext(Dispatchers.IO) {
-            try {
-                val responseBody = apiService.downloadPdf(url)
-                val contentType = responseBody.contentType()?.toString()
-                Log.d("Download", "Content-Type: $contentType")
-
-                if (contentType == null || !contentType.contains("pdf", ignoreCase = true)) {
-                    Log.e("Download", "Error: This is NOT a PDF file!")
-                    hideProgressDialog()
-                    withContext(Dispatchers.Main) {
-                        fileNotPdf.visibility = View.VISIBLE
-                    }
-                } else {
-                    processPdfDownload(responseBody, pdfName, pdfId)
-                }
-            } catch (e: IOException) {
-                Log.e("DownloadError", "Error downloading PDF: ${e.message}", e)
-            }
-        }
-    }
-
-    private suspend fun processPdfDownload(responseBody: ResponseBody, pdfName: String, pdfId: String?) {
-        withContext(Dispatchers.IO) {
-            val pdfFile = File(filesDir, "$pdfName.pdf")
-            val base64File = File(filesDir, "base64.txt")
-            val htmlFile = File(filesDir, "$pdfName$pdfId.html")
-
-            if (writeResponseBodyToDisk(pdfFile, responseBody)) {
-                Log.d("Download", "File downloaded successfully: ${pdfFile.length()} bytes")
-            } else {
-                Log.e("Download", "Failed to download file")
-                return@withContext
-            }
-
-            val base64String = encodeFileToBase64(pdfFile)
-            base64File.writeText(base64String)
-
-            val htmlPart1 = assets.open("pdf_html_viewer_1.html").bufferedReader().use { it.readText() }
-            val htmlPart2 = assets.open("pdf_html_viewer_2.html").bufferedReader().use { it.readText() }
-            htmlFile.writeText(htmlPart1 + base64File.readText() + htmlPart2)
-
-            base64File.delete()
-            pdfFile.delete()
-
-            withContext(Dispatchers.Main) {
-                pdfOpenInWebView(htmlFile.absolutePath)
-            }
-        }
-    }
-
-    private fun writeResponseBodyToDisk(file: File, body: ResponseBody): Boolean {
-        return try {
-            body.byteStream().use { inputStream ->
-                FileOutputStream(file).use { outputStream ->
-                    val buffer = ByteArray(16 * 1024)
-                    var bytesRead: Int
-                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                        outputStream.write(buffer, 0, bytesRead)
-                    }
-                    outputStream.flush()
-                }
-            }
-            true
-        } catch (e: IOException) {
-            e.printStackTrace()
-            false
-        }
-    }
-
-    private fun encodeFileToBase64(file: File): String {
-        val bytes = file.readBytes()
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Base64.getEncoder().encodeToString(bytes)
-        } else {
-            android.util.Base64.encodeToString(bytes, android.util.Base64.DEFAULT)
-        }
     }
 
     fun showProgressDialog(isDismissOnBack: Boolean = true) {
@@ -191,6 +193,4 @@ class PdfViewerActivity : AppCompatActivity() {
             super.onBackPressed()
         }
     }
-
-
 }
