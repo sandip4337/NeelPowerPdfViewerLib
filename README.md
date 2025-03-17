@@ -104,6 +104,8 @@ Step 2:  Add the dependency
 
   # How to use : download the pdf 
 
+  It is just for demo , you can use it as per your own 
+
 	class MainActivity : AppCompatActivity() {
 
 	    private lateinit var binding: ActivityMainBinding
@@ -146,12 +148,14 @@ Step 2:  Add the dependency
 	    }
 	
 	    private fun downloadPdf(pdfUrl: String, pdfName: String, progressBar: ProgressBar, progressText: TextView, openPdf: Button, downloadButton: Button) {
+     		// Initiate the class
 	        val pdfDownloader = PdfDownloader(this)
 	        progressBar.visibility = View.VISIBLE
 	        progressText.visibility = View.VISIBLE
 	        progressBar.progress = 0
 	        progressText.text = "0%"  // Initial percentage
-	
+
+ 		// call the download functionality
 	        pdfDownloader.downloadAndProcessPdf(
 	            pdfUrl,
 	            pdfName,
@@ -185,6 +189,8 @@ Step 2:  Add the dependency
  https://github.com/user-attachments/assets/a0f88576-c279-4629-92b4-6ffd04a6adc3
 
  # Here is the video of NeelPowerPdfLibrary : download the pdf and open the pdf 
+
+   Here both pdf are same because same link with different pdf name , i save my pdf to fileDir with different pdf name and id - it is only for demo 
 
 https://github.com/user-attachments/assets/17330762-5c69-4185-a8f3-87812391440f
 
