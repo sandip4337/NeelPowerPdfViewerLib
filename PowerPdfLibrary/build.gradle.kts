@@ -80,4 +80,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
 
     implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+
 }
