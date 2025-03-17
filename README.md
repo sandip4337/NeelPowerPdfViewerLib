@@ -144,9 +144,9 @@ Step 2:  Add the dependency
 
  https://github.com/user-attachments/assets/a0f88576-c279-4629-92b4-6ffd04a6adc3
 
- # Here is the repository of a project how to test the library 
+ # Here is the repository of a project with the impementation of the library
 
-	To test the library, visit (https://github.com/sandip4337/TestPDFLibrary).
+ [Repo Link -> https://github.com/sandip4337/TestPDFLibrary](https://github.com/sandip4337/TestPDFLibrary)
 
  # Here is the video of NeelPowerPdfLibrary : download the pdf and open the pdf 
 
