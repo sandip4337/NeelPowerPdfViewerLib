@@ -154,6 +154,9 @@ Step 2:  Add the dependency
 
 https://github.com/user-attachments/assets/2da3d465-1da5-457a-93b6-c637c4a9a64e
 
+## 📝 License  
+This library is licensed under the [MIT License](LICENSE).
+
 
 
 
