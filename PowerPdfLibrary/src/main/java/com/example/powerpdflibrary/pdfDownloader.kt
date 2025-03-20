@@ -13,13 +13,13 @@ import java.io.IOException
 
 class PdfDownloader(private val context: Context) {
 
-    private val apiService = RetrofitClient.apiService
     private val filesDirPath = context.filesDir.absolutePath
 
     fun downloadAndProcessPdf(
         pdfUrl: String,
         pdfName: String,
         pdfId: String,
+        pdfBaseUrl: String,
         onProgressUpdate: (Int) -> Unit,
         onDownloadComplete: (Boolean, String?) -> Unit
     ) {
@@ -36,6 +36,7 @@ class PdfDownloader(private val context: Context) {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                val apiService = RetrofitClient.getApiService(pdfBaseUrl)
                 val responseBody = async { apiService.downloadPdf(pdfUrl) }.await()
                 val contentType = responseBody.contentType()?.toString()
 
