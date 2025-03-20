@@ -13,15 +13,17 @@ import java.io.*
 class PdfDownloadWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
 
-    private val apiService = RetrofitClient.apiService
     private val filesDirPath = context.filesDir.absolutePath
 
     override suspend fun doWork(): Result {
         val pdfUrl = inputData.getString("PDF_URL") ?: return Result.failure()
         val pdfName = inputData.getString("PDF_NAME") ?: return Result.failure()
         val pdfId = inputData.getString("PDF_ID") ?: return Result.failure()
+        val baseUrl = inputData.getString("BASE_URL") ?: return Result.failure()
 
         val pdfFile = File(filesDirPath, "$pdfName.pdf")
+
+        val apiService = RetrofitClient.getApiService(baseUrl)
 
         return try {
             val responseBody = apiService.downloadPdf(pdfUrl)
@@ -73,7 +75,7 @@ class PdfDownloadWorker(context: Context, workerParams: WorkerParameters) :
 
                             val progress = ((downloadedBytes.toFloat() / totalBytes) * 100).toInt()
 
-                            if (progress >= lastProgress + 5) { // Send updates every 5%
+                            if (progress >= lastProgress + 2) { // Send updates every 5%
                                 setProgressAsync(workDataOf("PROGRESS" to progress))
                                 lastProgress = progress
                                 Log.d("PdfDownloadWorker", "Downloading: $progress% ($pdfId)")
@@ -117,15 +119,24 @@ class PdfDownloadWorker(context: Context, workerParams: WorkerParameters) :
     private suspend fun buildHtmlContent(base64File: File, outputHtmlFile: File) =
         withContext(Dispatchers.IO) {
             try {
-                outputHtmlFile.outputStream().bufferedWriter().use { writer ->
-                    applicationContext.assets.open("pdf_html_viewer_1.html").bufferedReader().use { reader ->
-                        writer.write(reader.readText())
+                outputHtmlFile.outputStream().use { outputStream ->
+                    // Write first HTML part
+                    applicationContext.assets.open("pdf_html_viewer_1.html").use { inputStream ->
+                        inputStream.copyTo(outputStream)
                     }
-                    base64File.inputStream().bufferedReader().use { reader ->
-                        reader.lineSequence().forEach { writer.write(it) }
+
+                    // Stream base64 data in chunks instead of loading into memory
+                    base64File.inputStream().buffered().use { input ->
+                        val buffer = ByteArray(32 * 1024) // 32KB Buffer
+                        var bytesRead: Int
+                        while (input.read(buffer).also { bytesRead = it } != -1) {
+                            outputStream.write(buffer, 0, bytesRead)
+                        }
                     }
-                    applicationContext.assets.open("pdf_html_viewer_2.html").bufferedReader().use { reader ->
-                        writer.write(reader.readText())
+
+                    // Write second HTML part
+                    applicationContext.assets.open("pdf_html_viewer_2.html").use { inputStream ->
+                        inputStream.copyTo(outputStream)
                     }
                 }
                 Log.d("PdfDownloadWorker", "HTML file created: ${outputHtmlFile.absolutePath}")

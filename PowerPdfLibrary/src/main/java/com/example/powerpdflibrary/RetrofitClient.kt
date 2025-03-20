@@ -14,11 +14,18 @@ object RetrofitClient {
         .writeTimeout(120, TimeUnit.SECONDS)
         .build()
 
-    private val retrofit = Retrofit.Builder()
-        .baseUrl("https://example.com/")
-        .client(client)  // Apply timeout settings
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
+    @Volatile
+    private var retrofit: Retrofit? = null
 
-    val apiService: com.example.powerpdflibrary.ApiService = retrofit.create(com.example.powerpdflibrary.ApiService::class.java)
+    fun getApiService(baseUrl: String): ApiService {
+        return retrofit?.create(ApiService::class.java) ?: synchronized(this) {
+            val newRetrofit = Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+            retrofit = newRetrofit
+            newRetrofit.create(ApiService::class.java)
+        }
+    }
 }

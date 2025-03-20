@@ -27,10 +27,11 @@ class PdfViewerActivity : AppCompatActivity() {
     private var pdfUrl: String? = null
     private var pdfName: String? = null
     private var pdfId: String? = null
+    private var baseUrl: String? = null
     private var isDownload: Boolean? = false
     private var progressDialog: PdfProgressDialog? = null
     private lateinit var filesDirPath: String
-    private val apiService = RetrofitClient.apiService
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +44,7 @@ class PdfViewerActivity : AppCompatActivity() {
         pdfUrl = intent.getStringExtra("PDF_URL") ?: ""
         pdfId = intent.getStringExtra("PDF_ID") ?: ""
         isDownload = intent.getBooleanExtra("isDownload", false)
+        baseUrl = intent.getStringExtra("BASE_URL")?: "https://example.com/"
 
 
         if (pdfUrl?.isNotEmpty() == true && pdfName?.isNotEmpty() == true && pdfId?.isNotEmpty() == true) {
@@ -54,7 +56,7 @@ class PdfViewerActivity : AppCompatActivity() {
                 if (File(htmlFilePath).exists()) {
                     pdfOpenInWebView(htmlFilePath)
                 } else {
-                    downloadAndProcessPdf(pdfUrl!!, pdfName!!, pdfId!!)
+                    downloadAndProcessPdf(pdfUrl!!, pdfName!!, pdfId!!, baseUrl!!)
                 }
             }
         } else {
@@ -63,8 +65,9 @@ class PdfViewerActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun downloadAndProcessPdf(url: String, pdfName: String, pdfId: String) {
+    private suspend fun downloadAndProcessPdf(url: String, pdfName: String, pdfId: String, baseUrl: String) {
         try {
+            val apiService = RetrofitClient.getApiService(baseUrl)
             val responseBody = withContext(Dispatchers.IO) { apiService.downloadPdf(url) }
             val contentType = responseBody.contentType()?.toString()
             Log.d("Download", "Content-Type: $contentType")
@@ -176,11 +179,12 @@ class PdfViewerActivity : AppCompatActivity() {
     }
 
     companion object {
-        fun openPdfViewer(context: Context, pdfUrl: String, pdfName: String, pdfId: String) {
+        fun openPdfViewer(context: Context, pdfUrl: String, pdfName: String, pdfId: String, baseUrl: String) {
             val intent = Intent(context, PdfViewerActivity::class.java).apply {
                 putExtra("PDF_URL", pdfUrl)
                 putExtra("PDF_NAME", pdfName)
                 putExtra("PDF_ID", pdfId)
+                putExtra("BASE_URL", baseUrl)
             }
             context.startActivity(intent)
         }
