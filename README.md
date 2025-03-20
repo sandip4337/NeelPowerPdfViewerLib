@@ -6,6 +6,8 @@ This is just a simple pdf library you can display a pdf
 
 pdf size should be within 50mb 
 
+For the large pdf you can compress the pdf and show it or your pdf can be in the range between 40-50mb
+
 Application size will be increase with 3-4 mb
 
 # step by step guide to add the library
