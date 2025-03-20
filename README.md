@@ -34,7 +34,7 @@ Step 1: Add it in your ***settings.gradle.kts*** at the end of repositories:
 Step 2:  Add the dependency
 
 	dependencies {
-	        implementation("com.github.sandip4337:NeelPowerPdfViewerLib:v1.0.4")
+	        implementation("com.github.sandip4337:NeelPowerPdfViewerLib:v1.0.6")
 	}
 
  # 🔥 Features
@@ -99,7 +99,9 @@ Step 2:  Add the dependency
 	        pdfButton.setOnClickListener {
 	            val pdfUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
 	            val pdfName = "dummy"
-	            PdfViewerActivity.openPdfViewer(this, pdfUrl, pdfName, "123dummy")
+	     
+	     	    // Pass the context, pdfurl, pdfname, pdfid, pdf_base_url should be must
+	            PdfViewerActivity.openPdfViewer(this, pdfUrl, pdfName, "123dummy", https://www.w3.org/)
 	        }
 	    }
 	}
@@ -116,11 +118,13 @@ Step 2:  Add the dependency
 	            "PDF_URL" to "https://example.com/sample.pdf",
 	            "PDF_NAME" to "SamplePDF",
 	            "PDF_ID" to "1234"
+	     	    "BASE_URL" to "https://example.com/"
 	        )
 	    )
 	    .build()
 	
 	WorkManager.getInstance(context).enqueue(workRequest)
+ 
 2: Observe Download Progress
 	Monitor progress using WorkManager's getWorkInfoByIdLiveData():
 
