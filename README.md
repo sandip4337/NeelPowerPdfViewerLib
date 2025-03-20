@@ -4,7 +4,7 @@
 
 This is just a simple pdf library you can display a pdf 
 
-pdf size should be within 20-40mb 
+pdf size should be within 50mb 
 
 Application size will be increase with 3-4 mb
 
