@@ -22,6 +22,9 @@ class PdfDownloadWorker(context: Context, workerParams: WorkerParameters) :
 
         val pdfFile = File(filesDirPath, "$pdfName.pdf")
 
+        val base46FilePath = "$filesDirPath/base64_$pdfName$pdfId.txt"
+        if (File(base46FilePath).exists()) return Result.success()
+
         val apiService = RetrofitClient.getApiService(baseUrl)
 
         return try {
