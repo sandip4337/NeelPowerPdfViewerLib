@@ -2,7 +2,7 @@
 
 **This is a Kotlin library for downloading and displaying PDFs in a WebView**
 
-This is just a simple pdf library you can display or downlad and then display a pdf 
+This is just a simple pdf library you can directly display the pdf or downlad and then display a pdf 
 
 pdf size should be within 50mb 
 
