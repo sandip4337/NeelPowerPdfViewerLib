@@ -36,7 +36,7 @@ Step 1: Add it in your ***settings.gradle.kts*** at the end of repositories:
 Step 2:  Add the dependency
 
 	dependencies {
-	        implementation("com.github.sandip4337:NeelPowerPdfViewerLib:v1.0.7")
+	        implementation("com.github.sandip4337:NeelPowerPdfViewerLib:v1.0.9")
 	}
 
 Step 3: Add this in your application class
@@ -45,8 +45,91 @@ Step 3: Add this in your application class
 	     ....
 	     // Schedule periodic file cleanup
 	     FileCleanupWorker.scheduleFileDeletion(this)
-             ....
-    	 }
+         ....
+    }
+
+ If you want access the pdf file as file
+
+ 	PowerPdfLibChecker.getFilesDirPathAsFile(context, pdf.pdfName, pdf.pdfId)
+
+ If you want access the pdf file as string
+
+ 	PowerPdfLibChecker.getFilesDirPathAsString(context, pdf.pdfName, pdf.pdfId)
+
+If you want to delete the file 
+
+	PowerPdfLibChecker.deletePdfFile(context, pdf.pdfName, pdf.pdfId)
+
+If you want the file is exists or not
+
+	PowerPdfLibChecker.checkPdfExits(context, pdf.pdfName, pdf.pdfId)
+	
+
+ # How to use : only open the pdf 
+
+	 class MainActivity : AppCompatActivity() {
+	
+	    private lateinit var pdfButton: Button
+	
+	    override fun onCreate(savedInstanceState: Bundle?) {
+	        super.onCreate(savedInstanceState)
+	        enableEdgeToEdge()
+	        setContentView(R.layout.activity_main)
+	
+	        pdfButton = findViewById(R.id.openPdfButton)
+	
+	        pdfButton.setOnClickListener {
+	            val pdfUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+	            val pdfName = "dummy"
+	     
+	     	    // Pass the context, pdfurl, pdfname, pdfid, pdf_base_url should be must
+	            PdfViewerActivity.openPdfViewer(this, pdfUrl, pdfName, "123", https://www.w3.org/)
+	        }
+	    }
+	}
+
+# How to use : download the pdf 
+
+1: Initialize WorkManager for PDF Download
+	
+   Use WorkManager to enqueue the PDF download task.
+
+	val workRequest = OneTimeWorkRequestBuilder<PdfDownloadWorker>()
+	    .setInputData(
+	        workDataOf(
+	            "PDF_URL" to "https://example.com/sample.pdf",
+	            "PDF_NAME" to "SamplePDF",
+	            "PDF_ID" to "1234"
+	     	    "BASE_URL" to "https://example.com/"
+	        )
+	    )
+	    .build()
+	
+	WorkManager.getInstance(context).enqueue(workRequest)
+ 
+2: Observe Download Progress
+	
+   Monitor progress using WorkManager's getWorkInfoByIdLiveData():
+
+	WorkManager.getInstance(context)
+	    .getWorkInfoByIdLiveData(workRequest.id)
+	    .observe(this) { workInfo ->
+	        if (workInfo != null) {
+	            val progress = workInfo.progress.getInt("PROGRESS", 0)
+	            Log.d("DownloadProgress", "Progress: $progress%")
+	
+	            if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+	                val htmlFilePath = workInfo.outputData.getString("HTML_FILE_PATH")
+	                Log.d("DownloadComplete", "HTML File Path: $htmlFilePath")
+	            }
+	        }
+	    }
+     
+3: Load HTML in WebView
+	
+   Once the HTML file is ready, display it in a WebView:
+
+	PdfViewerActivity.openPdfViewer(context, pdfUrl, pdfName, pdfId)
 
  # 🔥 Features
 
@@ -93,69 +176,6 @@ Step 3: Add this in your application class
 📡 Handles Large PDFs Effectively – Base64 conversion prevents memory overflow.
 
 📊 Download Progress Updates – Users can track file download progress.
-
- # How to use : only open the pdf 
-
-	 class MainActivity : AppCompatActivity() {
-	
-	    private lateinit var pdfButton: Button
-	
-	    override fun onCreate(savedInstanceState: Bundle?) {
-	        super.onCreate(savedInstanceState)
-	        enableEdgeToEdge()
-	        setContentView(R.layout.activity_main)
-	
-	        pdfButton = findViewById(R.id.openPdfButton)
-	
-	        pdfButton.setOnClickListener {
-	            val pdfUrl = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-	            val pdfName = "dummy"
-	     
-	     	    // Pass the context, pdfurl, pdfname, pdfid, pdf_base_url should be must
-	            PdfViewerActivity.openPdfViewer(this, pdfUrl, pdfName, "123", https://www.w3.org/)
-	        }
-	    }
-	}
-
-  # How to use : download the pdf 
-
-  1: Initialize WorkManager for PDF Download
-	Use WorkManager to enqueue the PDF download task.
-
-
-	val workRequest = OneTimeWorkRequestBuilder<PdfDownloadWorker>()
-	    .setInputData(
-	        workDataOf(
-	            "PDF_URL" to "https://example.com/sample.pdf",
-	            "PDF_NAME" to "SamplePDF",
-	            "PDF_ID" to "1234"
-	     	    "BASE_URL" to "https://example.com/"
-	        )
-	    )
-	    .build()
-	
-	WorkManager.getInstance(context).enqueue(workRequest)
- 
-2: Observe Download Progress
-	Monitor progress using WorkManager's getWorkInfoByIdLiveData():
-
-	WorkManager.getInstance(context)
-	    .getWorkInfoByIdLiveData(workRequest.id)
-	    .observe(this) { workInfo ->
-	        if (workInfo != null) {
-	            val progress = workInfo.progress.getInt("PROGRESS", 0)
-	            Log.d("DownloadProgress", "Progress: $progress%")
-	
-	            if (workInfo.state == WorkInfo.State.SUCCEEDED) {
-	                val htmlFilePath = workInfo.outputData.getString("HTML_FILE_PATH")
-	                Log.d("DownloadComplete", "HTML File Path: $htmlFilePath")
-	            }
-	        }
-	    }
-3: Load HTML in WebView
-	Once the HTML file is ready, display it in a WebView:
-
-	PdfViewerActivity.openPdfViewer(context, pdfUrl, pdfName, pdfId)
 
  # Here is the video of NeelPowerPdfLibrary : only open the pdf 
 
