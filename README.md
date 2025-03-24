@@ -23,7 +23,7 @@ Step 1: Add it in your ***settings.gradle.kts*** at the end of repositories:
 	}
 
  if you use ***gradle*** then Add it in your root ***settings.gradle*** at the end of repositories:
-
+ 
 	dependencyResolutionManagement {
 		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 		repositories {
@@ -38,6 +38,15 @@ Step 2:  Add the dependency
 	dependencies {
 	        implementation("com.github.sandip4337:NeelPowerPdfViewerLib:v1.0.7")
 	}
+
+Step 3: Add this in your application class
+
+	 override fun onCreate() {
+	     ....
+	     // Schedule periodic file cleanup
+	     FileCleanupWorker.scheduleFileDeletion(this)
+             ....
+    	 }
 
  # 🔥 Features
 
@@ -103,7 +112,7 @@ Step 2:  Add the dependency
 	            val pdfName = "dummy"
 	     
 	     	    // Pass the context, pdfurl, pdfname, pdfid, pdf_base_url should be must
-	            PdfViewerActivity.openPdfViewer(this, pdfUrl, pdfName, "123dummy", https://www.w3.org/)
+	            PdfViewerActivity.openPdfViewer(this, pdfUrl, pdfName, "123", https://www.w3.org/)
 	        }
 	    }
 	}
